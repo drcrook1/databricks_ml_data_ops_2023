@@ -1,0 +1,18 @@
+{
+    "num_workers": null,
+    "autoscale": {
+        "min_workers": 2,
+        "max_workers": 8
+    },
+    "cluster_name": "my-cluster",
+    "spark_version": "7.3.x-scala2.12",
+    "spark_conf": {},
+    "node_type_id": "Standard_D3_v2",
+    "custom_tags": {},
+    "spark_env_vars": {
+        "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+    },
+    "autotermination_minutes": 120,
+    "init_scripts": [],
+    "policy_id": "C65B864F02000008"
+}

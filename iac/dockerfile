@@ -1,0 +1,86 @@
+######################################
+#       START SECTION 0              #
+#       BASIC DEPENDENCIES           #
+######################################
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/New_York
+
+RUN apt-get clean -y
+RUN apt-get update -y
+RUN apt-get upgrade -y
+RUN apt-get install wget gnupg curl unzip jq apt-transport-https dos2unix nano zip python3 python3-pip -y
+
+######################################
+#       START SECTION 1              #
+#       INSTALL TERRAFORM            #
+######################################
+ENV TERRAFORM_VERSION="1.3.6"
+RUN wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+RUN unzip "terraform_${TERRAFORM_VERSION}_linux_amd64.zip"
+RUN mv terraform /bin
+RUN chmod -R a+x /bin/*
+
+######################################
+#       START SECTION 2              #
+#       INSTALL AZURE CLI            #
+######################################
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+######################################
+#       START SECTION                #
+#       INSTALL KUBECTL              #
+######################################
+RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+RUN echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list
+RUN apt-get update
+RUN apt-get install kubectl -y
+
+######################################
+#       START SECTION                #
+#       INSTALL HELM                 #
+######################################
+RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+RUN chmod 700 get_helm.sh
+RUN ./get_helm.sh
+
+######################################
+#       START SECTION                #
+#       INSTALL NODE                 #
+######################################
+RUN curl -sL https://deb.nodesource.com/setup_10.x -o nodesource_setup.sh
+RUN bash nodesource_setup.sh
+RUN apt-get install nodejs -y
+
+######################################
+#       START SECTION 3              #
+#       ADD TO PATH                  #
+######################################
+ENV PATH="/bin:${PATH}"
+
+######################################
+#       START SECTION 4              #
+#       COPY DEPLOY CODES            #
+######################################
+COPY . /deployment
+
+######################################
+#       START SECTION 5              #
+#       dos2Unix Everything          #
+######################################
+RUN find /deployment -type f -print0 | xargs -0 -n 1 -P 4 dos2unix 
+
+######################################
+#       START SECTION 6              #
+#       EVERYTHING +x                #
+######################################
+RUN chmod -x -R /deployment/*
+
+
+######################################
+#       START SECTION 7              #
+#       RUN COMMAND                  #
+######################################
+WORKDIR /deployment/
+CMD ["/bin/bash", "/deployment/terraform/deploy.sh"]
